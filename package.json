@@ -1,0 +1,25 @@
+{
+  "name": "menewsserv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ING-ORD/MENewsServ.git"
+  },
+  "author": "MaGl",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ING-ORD/MENewsServ/issues"
+  },
+  "homepage": "https://github.com/ING-ORD/MENewsServ#readme",
+  "dependencies": {
+    "domjs": "^0.3.2",
+    "needle": "^2.4.0",
+    "tress": "^1.1.4"
+  }
+}
