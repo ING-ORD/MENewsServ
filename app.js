@@ -1,30 +1,19 @@
-// var needle = require('needle');
-// var tress = require('tress');
+var firebaseConfig = {
+    apiKey: "AIzaSyAT7n0QCCRiCvAgOGJOy-oQjVUdl7BLj9o",
+    authDomain: "menews-9b50a.firebaseapp.com",
+    databaseURL: "https://menews-9b50a.firebaseio.com",
+    projectId: "menews-9b50a",
+    storageBucket: "",
+    messagingSenderId: "402460413686",
+    appId: "1:402460413686:web:ba39c52342d0b13992e6d7"
+};
+var firebase = require("firebase");
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();
 
 
-// var URL = 'https://72.ru';
-// var result = [];
 
-// var q = tress(function(url, callback){
 
-//     needle.get(url, function(err, res){
-//         if (err) throw err;
-
-//         callback(); 
-//     });
-// });
-
-// q.drain = function(){
-//     require('fs').writeFileSync('./data.json', JSON.stringify(results, null, 4));
-// }
-
-// q.push(URL);
-
-// needle.get(URL, function(err, res){
-//     if (err) throw err;
-//     console.log(res.body);
-//     console.log(res.statusCode);
-// });
 var tress = require('tress');
 var needle = require('needle');
 var domjs = require('domjs');
@@ -35,72 +24,79 @@ var fs = require('fs');
 var URL = 'https://72.ru';
 var results = [];
 
-var q = tress(function(url, callback){
-    needle.get(url, function(err, res){
-        if (err) throw err;
-
-        // парсим DOM
-        var $ = cheerio.load(res.body);
-
-        // console.log(res.body);
-        //информация о новости
-        // console.log($('h3.BRen>a').attr('href'),"\n");
-        var old = 0;
-        console.log( $('h3[data-vr-headline].BRen a').length );
-        $('h3[data-vr-headline].BRen>a').each(function() {
-            if(){
-                
-                console.log("URL: "+URL+$(this).attr("href"));
-            }
-        });
-
-        console.log( $("picture>img").length );
-        $("picture>img").each(function(){
-            if(i!=0){
-                console.log($(this).attr("data-src"));
-                i = 0;
-            }
-            i++;
-            
-        });
-
-        console.log( $('h3.BRen').length );
-        $('h3.BRen').each(function(){
-            if(i!=0){
-                console.log($(this).text().split(" ").slice(0,10).join(" ")+"...");
-                i = 0;
-            }
-            i++;
-        });
-        
-        // console.log($('h3.BRen').text());
-
-        // if($('.b_infopost').contents().eq(2).text().trim().slice(0, -1) === 'Алексей Козлов'){
-        //     results.push({
-        //         title: $('h1').text(),
-        //         date: $('.b_infopost>.date').text(),
-        //         href: url,
-        //         size: $('.newsbody').text().length
-        //     });
-        // }
-
-        //список новостей
-        // $('.b_rewiev p>a').each(function() {
-        //     q.push($(this).attr('href'));
-        // });
-
-        //паджинатор
-        // $('.bpr_next>a').each(function() {
-        //     // не забываем привести относительный адрес ссылки к абсолютному
-        //     q.push(resolve(URL, $(this).attr('href')));
-        // });
-
-        callback();
-    });
-}, 10); // запускаем 10 параллельных потоков
-
-q.drain = function(){
-    fs.writeFileSync('./data.json', JSON.stringify(results, null, 4));
+var elementInObject = function(el, obj) {
+    
+    for(var key in obj){
+        if (el == obj[key]){
+            return true;
+        }
+    }
+    return false;
 }
+var origin = {
+    "url":{},
+    "imgLink":{},
+    "title":{}
+};
+needle.get(URL, function(err, res){
+    if (err) throw err;
 
-q.push(URL);
+    var $ = cheerio.load(res.body);
+
+    for (var i = 0 ; i < $('h3[data-vr-headline].BRen a').length ; i++){
+
+        var link = URL+$('h3[data-vr-headline].BRen a').eq(i).attr("href");
+        var title = $('h3.BRen').eq(i).text();
+        var imgLink = $("picture>img").eq(i).attr("data-src");
+
+        
+        if (!(elementInObject(link,origin["url"]) ||
+        elementInObject(title, origin["title"]) ||
+        elementInObject(imgLink,origin["imgLink"]))){
+            origin["url"][i] = link;
+            origin["imgLink"][i] = imgLink;
+            origin["title"][i] = title;
+            var soursID = "sourсe"+i;
+            database.ref("/newsToSourсe/" + soursID).set({
+                link,
+                imgLink,
+                title
+            });
+        }
+
+        
+    }
+
+    let id = 0;
+    for(let key in origin["url"]){
+        let link = origin["url"][key];
+        
+        needle.get(link, function (err, res){
+            if (err) throw err;
+    
+            let $ = cheerio.load(res.body);
+
+            let discription = $("p[itemprop = alternativeHeadline]").text()
+            let soursID = "sourсe"+id;
+
+            let link = origin["url"][key];
+            let imgLink = origin["imgLink"][key];
+            let title = origin["title"][key];
+
+
+            database.ref("/newsToSourсe/" + soursID).set({
+                link,
+                imgLink,
+                title,
+                discription
+            });
+            id++;
+        });
+    }
+
+    console.log(origin);
+    
+});
+
+
+

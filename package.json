@@ -1,7 +1,6 @@
 {
   "name": "menewsserv",
   "version": "1.0.0",
-  "description": "",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -18,8 +17,13 @@
   },
   "homepage": "https://github.com/ING-ORD/MENewsServ#readme",
   "dependencies": {
+    "database": "0.0.2",
     "domjs": "^0.3.2",
+    "firebase": "^6.6.0",
+    "firebase-app": "0.0.1",
     "needle": "^2.4.0",
     "tress": "^1.1.4"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
